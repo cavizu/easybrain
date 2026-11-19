@@ -1,0 +1,16 @@
+services:
+  easybrain:
+    build: .
+    container_name: easybrain-memory
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      - HOST=0.0.0.0
+      - PORT=3000
+      - STORAGE_PROVIDER=${STORAGE_PROVIDER:-local}
+      - LOCAL_STORAGE_PATH=/app/data/easybrain.memory.json
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped

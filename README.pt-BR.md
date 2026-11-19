@@ -7,7 +7,7 @@
 
 [![Licença: MIT](https://img.shields.io/badge/Licen%C3%A7a-MIT-yellow.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue.svg)](https://www.typescriptlang.org/)
-[![Node.js](https://img.shields.io/badge/Node.js-20%2B-green.svg)](https://nodejs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-22%2B-green.svg)](https://nodejs.org/)
 [![MCP SDK](https://img.shields.io/badge/MCP-SDK%20Oficial-purple.svg)](#usando-como-servidor-mcp--agent-skill)
 
 ---
@@ -27,15 +27,15 @@ Ao abrir uma nova conversa no mesmo repositório, o agente chama `easybrain_boot
 
 ---
 
-## ✨ Principais Recursos (v1.2)
+## ✨ Principais Recursos (v1.2.1)
 
 - **Isolamento Estrito por Projeto (`projectId`)**: Resolve automaticamente `.easybrain/project.json` por repositório (com suporte a monorepos). O Projeto A nunca mistura dados com o Projeto B.
 - **Dois Modos de Operação**:
   - **Modo Básico (Sem Chave de API / Custo Zero)**: Funciona imediatamente sem `OPENAI_API_KEY`. Entrega Checkpoints estruturados, `bootstrap` instantâneo, busca textual por palavras-chave e rastreabilidade dos logs originais.
   - **Modo Enriquecido (Bibliotecário IA + Vetores Semânticos)**: Adicione uma chave compatível com OpenAI (OpenAI, Groq, DeepSeek, Ollama, OpenRouter) para consolidar conversas em resumos episódicos e busca vetorial por cosseno.
 - **Duplo Motor de Armazenamento**:
-  - **Local Zero-Config (`STORAGE_PROVIDER=local`)**: Salva em `<projeto>/.easybrain/memory.json` com gravação atômica (`.tmp` -> `rename`).
-  - **Supabase Pessoal (`STORAGE_PROVIDER=supabase`)**: Conecta ao seu próprio Supabase (`PostgreSQL + pgvector` HNSW) com isolamento por `project_id` e validação estrita de `lock_token` em transação atômica.
+  - **Local Zero-Config (`STORAGE_PROVIDER=local`)**: Salva em `<projeto>/.easybrain/memory.json` com bloqueio concorrente entre processos (`.lock`), validação anti-corrupção e gravação atômica (`.tmp` -> `rename`).
+  - **Supabase Pessoal (`STORAGE_PROVIDER=supabase`)**: Conecta ao seu próprio Supabase (`PostgreSQL + pgvector` HNSW) com isolamento por `project_id` e validação estrita de lote completo (`lock_token`) em transação atômica.
 - **Servidor MCP Oficial + `SKILL.md`**: Construído com `@modelcontextprotocol/sdk` expondo 4 ferramentas enxutas (`easybrain_bootstrap`, `easybrain_save`, `easybrain_recall`, `easybrain_get_sources`) acompanhadas da Skill padrão `skills/easybrain/SKILL.md`.
 
 ---
@@ -51,6 +51,21 @@ npm run demo
 ```
 
 Não é necessário criar conta de banco de dados nem informar chave de API para rodar `npm test` ou `npm run demo` no Modo Básico.
+
+---
+
+## 💻 Comandos da CLI
+
+```bash
+# Inicializa o EasyBrain explicitamente em um projeto (cria .easybrain/project.json)
+npx easybrain init [--project <caminho>]
+
+# Diagnostica o ambiente, motor de armazenamento ativo, modo de processamento e escopo
+npx easybrain doctor [--project <caminho>]
+
+# Exibe o bloco JSON do servidor MCP pronto para copiar e os caminhos da Skill para a sua IDE
+npx easybrain setup
+```
 
 ---
 
@@ -94,6 +109,19 @@ SUPABASE_SERVICE_ROLE_KEY=sua-service-role-key
 # Opcional para Modo Enriquecido:
 OPENAI_API_KEY=sk-...
 ```
+
+---
+
+## 🐳 Docker e API REST (Opcional)
+
+Você também pode executar o EasyBrain como um microserviço REST independente:
+
+```bash
+docker compose up -d
+curl http://127.0.0.1:3000/health
+```
+
+A API REST expõe os mesmos endpoints do cliente: `/health`, `/api/memory/bootstrap`, `/api/memory/checkpoint`, `/api/memory/ingest`, `/api/memory/retrieve` e `/api/memory/logs/decompress`.
 
 ---
 
